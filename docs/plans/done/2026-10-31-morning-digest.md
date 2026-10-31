@@ -82,8 +82,9 @@ Done when: the preview link no longer shows the lane marker.
 ## Review and cleanup
 
 The reviewer saw the marked preview and requested marker removal. The markerless overwrite was
-performed at the same URL. Parent verification of the public URL is pending, so acceptance is not
-recorded here.
+performed at the same URL. Parent verified deployment 41248699683 succeeded; the public HTTPS URL
+returns 200, shows “no marker set,” has no lane marker, and keeps the sample digest intact. Acceptance
+is still pending.
 
 Sample preview URL: https://jrarick.github.io/mega-s01e04-rig/
 
