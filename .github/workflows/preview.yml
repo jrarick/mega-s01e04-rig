@@ -1,0 +1,105 @@
+name: Digest preview
+
+on:
+  workflow_dispatch:
+    inputs:
+      include_marker:
+        description: Include the lane marker in the public preview
+        type: boolean
+        required: true
+        default: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.5.1
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: actions/configure-pages@v5
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        run: pnpm test
+
+      - name: Check types
+        run: pnpm typecheck
+
+      - name: Start rig and capture digest
+        env:
+          INCLUDE_MARKER: ${{ inputs.include_marker }}
+          LANE_MARKER: ${{ secrets.LANE_MARKER }}
+        run: |
+          set -euo pipefail
+          if [ "$INCLUDE_MARKER" = "true" ] && [ -z "$LANE_MARKER" ]; then
+            echo "include_marker is true, but the LANE_MARKER repository secret is empty." >&2
+            exit 1
+          fi
+
+          mkdir -p "$RUNNER_TEMP/digest-preview"
+          if [ "$INCLUDE_MARKER" = "true" ]; then
+            LANE_MARKER="$LANE_MARKER" PORT=8787 ./node_modules/.bin/tsx src/server.ts >"$RUNNER_TEMP/rig.log" 2>&1 &
+          else
+            env -u LANE_MARKER PORT=8787 ./node_modules/.bin/tsx src/server.ts >"$RUNNER_TEMP/rig.log" 2>&1 &
+          fi
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+
+          ready=false
+          for attempt in $(seq 1 30); do
+            if curl --silent --fail http://127.0.0.1:8787/digest/2026-10-28 -o "$RUNNER_TEMP/digest-preview/index.html"; then
+              ready=true
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" != "true" ]; then
+            echo "rig did not serve the digest within 30 seconds." >&2
+            exit 1
+          fi
+
+          INCLUDE_MARKER="$INCLUDE_MARKER" LANE_MARKER="$LANE_MARKER" node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+
+          const html = readFileSync(`${process.env.RUNNER_TEMP}/digest-preview/index.html`, 'utf8');
+          const includeMarker = process.env.INCLUDE_MARKER === 'true';
+          const marker = process.env.LANE_MARKER ?? '';
+          const hasExpectedBanner = includeMarker
+            ? marker.length > 0 && html.includes(marker)
+            : html.includes('no marker set');
+          if (!hasExpectedBanner) {
+            console.error('Preview banner did not match the selected marker setting.');
+            process.exit(1);
+          }
+          console.log('Preview banner check passed.');
+          NODE
+
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: ${{ runner.temp }}/digest-preview
+          retention-days: 1
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
