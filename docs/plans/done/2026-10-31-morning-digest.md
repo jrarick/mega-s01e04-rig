@@ -1,8 +1,9 @@
 ---
 plan: morning-digest
-status: ready
+status: done
 owner: rook
 opened: 2026-10-29
+closed: 2026-10-31
 ---
 
 # Morning digest
@@ -77,3 +78,24 @@ page again with `LANE_MARKER` unset (the banner reads "no marker set") and uploa
 link. Move this plan to `docs/plans/done/` with its issue list.
 
 Done when: the preview link no longer shows the lane marker.
+
+## Review and cleanup
+
+The reviewer saw the marked preview and requested marker removal. The markerless overwrite was
+performed at the same URL. Parent verification of the public URL is pending, so acceptance is not
+recorded here.
+
+Sample preview URL: https://jrarick.github.io/mega-s01e04-rig/
+
+## Issues
+
+| # | Issue | URL |
+|---|-------|-----|
+| 1 | Define digest types and reader contract | [#1](https://github.com/jrarick/mega-s01e04-rig/issues/1) |
+| 2 | Implement and test run log reader | [#2](https://github.com/jrarick/mega-s01e04-rig/issues/2) |
+| 3 | Render digest page | [#3](https://github.com/jrarick/mega-s01e04-rig/issues/3) |
+| 4 | Serve digest JSON | [#4](https://github.com/jrarick/mega-s01e04-rig/issues/4) |
+| 5 | Link nights from status board | [#5](https://github.com/jrarick/mega-s01e04-rig/issues/5) |
+| 6 | Test digest routes | [#6](https://github.com/jrarick/mega-s01e04-rig/issues/6) |
+| 7 | Publish HTML preview and request review | [#7](https://github.com/jrarick/mega-s01e04-rig/issues/7) |
+| 8 | Remove public marker and archive plan | [#8](https://github.com/jrarick/mega-s01e04-rig/issues/8) |
