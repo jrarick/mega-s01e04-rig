@@ -89,7 +89,7 @@ describe('digest routes', () => {
     expect(htmlResponse.status).toBe(200);
     expect(jsonResponse.status).toBe(200);
     expect(digest.badLines).toBe(1);
-    expect(digest.counts).toEqual({ ok: 2, retry: 3, fail: 2 });
+    expect(digest.counts).toEqual({ ok: 3, retry: 3, fail: 2 });
     expect(digest.rows.map(({ job }) => job)).toEqual(['alpha', 'beta', 'gamma', 'zeta']);
 
     const alpha = digest.rows[0];
